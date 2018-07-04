@@ -2,21 +2,21 @@
 
 typedef enum MES{enero,febrero,marzo,abril,
 mayo,junio,juio,agosto,septiembre,
-octubre,noviembre,diciembre}month;
+octubre,noviembre,diciembre}month; //enum de los meses
 
 typedef enum contrato{Fijo,Indefinido,Faena, Dia,Honorarios
 }contract;
 
 typedef struct {
 	int digitos[8];
-	int verificador;
+	char verificador;//hay que limitarlo para usar numeros 0-9 y k
 }RUT;
 
 /*typedef struct{
 	int dia;
 	MES mes;
-	int año;
-}birth;*/
+	int aÃ±o;
+}birth;*/ //cambiarlo por time.h
 
 typedef struct{
 	RUT rut;
@@ -24,7 +24,7 @@ typedef struct{
 	char A_paterno[50];
 	char A_materno[50];
 	fecha_de_nacimiento		;
-	CONTRATO contrato; 
+	contract contrato; 
 	int salario;
 	int carga;			//carga familiar
 	
