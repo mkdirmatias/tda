@@ -35,24 +35,36 @@ typedef struct{
 	
 }apartment;
 
-//tabla hash simple no considera colisiones.
+/*tabla hash simple no considera colisiones.
+0=la direccion esta libre
+1=la direccion esta ocupada
+2=la direccion esta libre pero estuvo ocupada en algun momento.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #define max 100
 typedef int t_key;
 typedef int t_value;
 t_key key;
+
 t_value value;
+
+
 t_key h(t_key);
+
 typedef struct pair{
 	t_key key;
 	t_value value;
 }pair ;
+
 typedef struct t_hash{
 	pair t[max];
 	int disponible[max];
 }t_hash;
-t_key h(t_key key){
+
+
+t_key h(t_key key){  //funcion modular
 	return key%max;
 }
 
@@ -66,7 +78,7 @@ int main(){
 	return 0;
 }
 
-void insertar( t_hash * tabla , pair elemento ){
+void insertar( t_hash * tabla , pair elemento ){//elemento tipo pair (valor y key)
 	tabla->t[h(elemento.key)]=elemento;
 	tabla->disponible[h(elemento.key)]=1;
 	return tabla;
