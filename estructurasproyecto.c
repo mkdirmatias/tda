@@ -1,5 +1,4 @@
 //tipos de datos
-
 typedef enum MES{enero,febrero,marzo,abril,
 mayo,junio,juio,agosto,septiembre,
 octubre,noviembre,diciembre}month; //enum de los meses
@@ -7,16 +6,14 @@ octubre,noviembre,diciembre}month; //enum de los meses
 typedef enum contrato{Fijo,Indefinido,Faena, Dia,Honorarios
 }contract;
 
+typedef enum verif_rut{0,1,2,3,4,5,6,7,8,9,k}VERIF_RUT;
+
 typedef struct {
 	int digitos[8];
-	char verificador;//hay que limitarlo para usar numeros 0-9 y k
+	VERIF_RUT verificador;
 }RUT;
 
-/*typedef struct{
-	int dia;
-	MES mes;
-	int año;
-}birth;*/ //cambiarlo por time.h
+
 
 typedef struct{
 	RUT rut;
