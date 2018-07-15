@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+/*observacion. 
+0=la posicion esta libre
+1=significa que la posicion ya tiene un elemento.
+2=la posicion esta libre pero estuvo ocupada.
+*/
 
 /*
 * Constantes y variables
@@ -16,8 +20,8 @@ t_value value;
 * Estructura del elemento
 */
 typedef struct pair{
-    t_key key;
-    t_value value;
+    t_key key;//clave
+    t_value value;//valor
 }pair ;
 
 
