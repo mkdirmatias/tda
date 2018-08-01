@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 
 
@@ -15,7 +16,7 @@
 int verificar_caracter(char *cadena, char *caracter)
 {
     char *retorno;
-    retorno = strstr( cadena, caracter );
+    retorno = strstr(cadena, caracter);
     if(retorno)
     {
         return 1;
@@ -45,7 +46,7 @@ int limpiar_rut(char *rut)
         {
             // existe guion pero no punto
             // separamos
-            separado=strtok(rut,"-");
+            separado = strtok(rut,"-");
         }
         else
         {
@@ -258,7 +259,7 @@ int validar_fecha(int dia,int mes,int year)
 * @param t_departamentos tabla hash departamentos
 * @param tipo 1 si es agregar usuario y 2 si se está editando
 */
-void agregar_empleado(t_hash *t_empleados,pair empleados[caracteres],Empleado employe,t_hash *t_departamentos, int tipo, char rut_v)
+void agregar_empleado(t_hash *t_empleados,pair empleados[caracteres],Empleado employe,t_hash *t_departamentos, int tipo, int rut_v)
 {
     // Variables
     char primer_nombre[caracteres], segundo_nombre[caracteres], apellido_paterno[caracteres], apellido_materno[caracteres], contrato[caracteres], rut_completo[caracteres], solicitar_rut[caracteres], *elemento_rut, *dv = NULL, ID_departamento;
@@ -270,81 +271,95 @@ void agregar_empleado(t_hash *t_empleados,pair empleados[caracteres],Empleado em
     // Solicitmamos el departamento
     do
     {
-        printf("Ingresa el departamento: ");
+        printf("\n Ingresa el departamento: ");
         scanf("%s",&ID_departamento);
-    }while(buscar(t_departamentos, stringToInt(&ID_departamento)) != 1);
+    }while(buscar(t_departamentos, h(stringToInt(&ID_departamento))+1,1) != 1);
 
-    
     // Solicitamos rut
-    do
+    if(tipo == 1)
     {
-        rut_completo[0]='\0';
-        printf("RUT: ");
-        scanf("%s",solicitar_rut);
-        elemento_rut = strtok(solicitar_rut,".-");
-    
-        int contador_rut=0;
-    
-        while (elemento_rut != NULL)
+        do
         {
-            if(contador_rut!=3)
-            {
-                strcat(rut_completo, elemento_rut);
-            }
-            else
-            {
-                dv=elemento_rut;
-            }
-            elemento_rut = strtok(NULL, ".-");
-            contador_rut++;
-        }
-        rut=atoi(rut_completo);
+            rut_completo[0]='\0';
+            printf(" RUT: ");
+            scanf("%s",solicitar_rut);
+            elemento_rut = strtok(solicitar_rut,".-");
         
-    }while(valida_rut(rut,dv) != 1);
-    rut_empleado.rut=rut;
-    rut_empleado.verificador=atoi(dv);
+            int contador_rut=0;
+        
+            while (elemento_rut != NULL)
+            {
+                if(contador_rut!=3)
+                {
+                    strcat(rut_completo, elemento_rut);
+                }
+                else
+                {
+                    if(elemento_rut==0)
+                    {
+                        dv="0";
+                    }
+                    else
+                    {
+                        dv=elemento_rut;
+                    }
+                }
+                elemento_rut = strtok(NULL, ".-");
+                contador_rut++;
+            }
+            rut=atoi(rut_completo);
+            
+        }while(valida_rut(rut,dv) != 1);
+        rut_empleado.rut=rut;
+        rut_empleado.verificador=atoi(dv);
+    }
+    else
+    {
+        rut_empleado.rut=t_empleados->t[h(rut_v)+1].value.rut.rut;
+        rut_empleado.verificador=t_empleados->t[h(rut_v)+1].value.rut.verificador;
+    }
     
 
     // Solicitamos primer nombre
-    printf("Primer nombre: ");
+    printf(" Primer nombre: ");
     scanf("%s",primer_nombre);
     
 
     // Solicitamos segundo nombre
-    printf("Segundo nombre: ");
+    printf(" Segundo nombre: ");
     scanf("%s",segundo_nombre);
 
     
     // Solicitamos Apellido paterno
-    printf("Apellido Paterno: ");
+    printf(" Apellido Paterno: ");
     scanf("%s",apellido_paterno);
     
 
     // Solicitamos Apellido materno
-    printf("Apellido Materno: ");
+    printf(" Apellido Materno: ");
     scanf("%s",apellido_materno);
     
 
     // Solicitamos Fecha de nacimiento
     do
     {
-        printf("Fecha De Nacimiento (dia-mes-año): ");
+        printf(" Fecha De Nacimiento (dia-mes-año): ");
         scanf("%d-%d-%d",&dia,&mes,&year);
     }while(validar_fecha(dia,mes,year) != 1);
     
 
     // Solicitamos tipo de contrato
-    printf("Tipo de contrato: ");
+    printf(" Tipo de contrato: ");
     scanf("%s",contrato);
     
 
     // Solicitamos salario
-    printf("Salario: ");
+    printf(" Salario: ");
     scanf("%i",&salario);
     
 
     // Solicitamos las cargas
-    printf("Cargas: ");
+    printf(" Cargas: ");
     scanf("%i",&cargas);
     
     
@@ -365,18 +380,31 @@ void agregar_empleado(t_hash *t_empleados,pair empleados[caracteres],Empleado em
     empleados[t_empleados->total_empleados].key=rut_empleado.rut;
     empleados[t_empleados->total_empleados].value=employe;
     
-    printf("%i\n",rut_empleado.rut);
-    
     insertar(t_empleados, empleados[t_empleados->total_empleados],2);
 
     // Guardamos al empleado en el archivo txt
     FILE *archivo;
     archivo = fopen("Headers/Archivos/empleados.txt", "a");
-    fprintf(archivo, "%s,%s,%s,%s,%s,%s,%i,%i,%i,%s,%i,%i\n",rut_completo,dv,primer_nombre,segundo_nombre,apellido_paterno,apellido_materno,dia,mes,year,contrato,salario,cargas);
+    
+    if(tipo==1)
+    {
+        fprintf(archivo, "%s,%s,%s,%s,%s,%s,%i,%i,%i,%s,%i,%i\n",rut_completo,dv,primer_nombre,segundo_nombre,apellido_paterno,apellido_materno,dia,mes,year,contrato,salario,cargas);
+    }
+    else
+    {
+        fprintf(archivo, "%i,%i,%s,%s,%s,%s,%i,%i,%i,%s,%i,%i\n",rut_empleado.rut,rut_empleado.verificador,primer_nombre,segundo_nombre,apellido_paterno,apellido_materno,dia,mes,year,contrato,salario,cargas);
+    }
     
     
     // Mensaje
-    printf("Empleado Agregado");
+    if(tipo==1)
+    {
+        printf("\n Empleado Agregado");
+    }
+    else
+    {
+        printf("\n Empleado Editado");
+    }
 
     // cerramos el archivo
     fclose(archivo);
@@ -385,11 +413,48 @@ void agregar_empleado(t_hash *t_empleados,pair empleados[caracteres],Empleado em
 
 
 
-void editar_empleado(t_hash *t_empleados,pair empleados[caracteres],Empleado employe,t_hash *t_departamentos, char rut)
+/**
+* Eliminar un usuario, disponibilidad == 2
+* @param t_empleados Tabla hash de empleados
+* @param key         el key es el rut del usuario
+* @param mensaje     1 para mostrar y 2 para no mostrar 
+*/
+void eliminar_empleados(t_hash *t_empleados, int key, int mensaje)
 {
-    if(buscar(t_empleados,limpiar_rut(&rut)) == 1)
+    if(buscar(t_empleados,key+1,2)==1)
     {
-        agregar_empleado(t_empleados, empleados, employe, t_departamentos,2,rut);
+        if(mensaje==1)
+        {
+            printf("\n Empleado eliminado");
+        }
+
+        t_empleados->disponible[key+1]=2;
+        t_empleados->total_empleados--;
+    }
+    else
+    {
+        printf("\n El empleado no existe\n");
+    }
+}
+
+
+
+/**
+* Editar información de un empleado
+* @param t_empleados     Tabla hash empleados
+* @param empleados       elemento pair empleados
+* @param employe         struct empleado
+* @param t_departamentos Tabla hash departamentos
+* @param rut             Rut del empleado (identificador)
+*/
+void editar_empleado(t_hash *t_empleados,pair empleados[caracteres],Empleado employe,t_hash *t_departamentos, char rut, int limpio)
+{
+    int newKey=h(limpio);
+
+    if(buscar(t_empleados,newKey+1,2) == 1)
+    {
+        eliminar_empleados(t_empleados,newKey,2);
+        agregar_empleado(t_empleados, empleados, employe, t_departamentos,2,limpio);
     }
     else
     {
@@ -470,13 +535,21 @@ void cargar_departamentos(t_hash *t_departamentos, pair departamentos[caracteres
 * @param empleados Tabla hash empleados
 * @param key       La key será el rut del empleado
 */
-void buscar_empleado(t_hash *empleados, int key)
+void buscar_empleado(t_hash *empleados, char *key, int rut_limpio)
 {
-    if(buscar(empleados, key) == 1)
+    int newKey=h(rut_limpio);
+
+    if(buscar(empleados, newKey+1,2) == 1)
     {
+        do
+        {
+            newKey++;
+        }
+        while(empleados->t[newKey].value.rut.rut != rut_limpio);
+
         printf("\n Información Empleado\n");
         
-        printf(" RUT: %i-%i \n Nombre:  %s %s %s %s \n Fecha Nacimiento: %i-%i-%i \n Contrato: %s \n Sueldo: %i \n Cargas: %i \n ", empleados->t[h(key)].value.rut.rut,empleados->t[h(key)].value.rut.verificador,empleados->t[h(key)].value.primer_nombre,empleados->t[h(key)].value.segundo_nombre,empleados->t[h(key)].value.a_paterno,empleados->t[h(key)].value.a_materno,empleados->t[h(key)].value.dia,empleados->t[h(key)].value.mes,empleados->t[h(key)].value.year,empleados->t[h(key)].value.contrato,empleados->t[h(key)].value.salario,empleados->t[h(key)].value.cargas);
+        printf(" RUT: %i-%i \n Nombre:  %s %s %s %s \n Fecha Nacimiento: %i-%i-%i \n Contrato: %s \n Sueldo: %i \n Cargas: %i \n ", empleados->t[newKey].value.rut.rut,empleados->t[newKey].value.rut.verificador,empleados->t[newKey].value.primer_nombre,empleados->t[newKey].value.segundo_nombre,empleados->t[newKey].value.a_paterno,empleados->t[newKey].value.a_materno,empleados->t[newKey].value.dia,empleados->t[newKey].value.mes,empleados->t[newKey].value.year,empleados->t[newKey].value.contrato,empleados->t[newKey].value.salario,empleados->t[newKey].value.cargas);
         
     }
     else
@@ -590,9 +663,9 @@ void listar_departamentos(t_hash t_departamentos, pair departamentos[caracteres]
     printf(" \nDepartamentos: \n\n");
     for (i=0; i<t_departamentos.total_departamentos-1; i++)
     {
-        if(buscar(&t_departamentos,departamentos[i].key) != 0)
+        if(buscar(&t_departamentos,h(departamentos[i].key)+1,1) == 1)
         {
-            printf(" - %s\n",t_departamentos.t[h(departamentos[i].key)].depto.nombreDepartamento);
+            printf(" - %s\n",t_departamentos.t[h(departamentos[i].key)+1].depto.nombreDepartamento);
         }
     }
 }
@@ -607,9 +680,10 @@ void listar_departamentos(t_hash t_departamentos, pair departamentos[caracteres]
 */
 void eliminar_departamentos(t_hash *t_departamentos, int key)
 {
-    if(buscar(t_departamentos,key)==1)
+    if(buscar(t_departamentos,key+1,1)==1)
     {
-        t_departamentos->disponible[h(key)]=2;
+        printf("\n Departamento eliminado");
+        t_departamentos->disponible[key+1]=2;
     }
     else
     {
@@ -621,55 +695,35 @@ void eliminar_departamentos(t_hash *t_departamentos, int key)
 
 
 /**
-* Eliminar un usuario, disponibilidad == 2
-* @param t_departamentos Tabla hash de empleados
-* @param key             el key es el rut del usuario
+* Agregar un departamento
+* @param t_departamentos tabla hash departamentos
+* @param departamentos   elemento pair departamentos
+* @param depto           struct Departamento
 */
-void eliminar_empleados(t_hash *t_empleados, int key)
-{
-    printf("%d\n", key);
-    if(buscar(t_empleados,key)==1)
-    {
-        t_empleados->disponible[h(key)]=2;
-    }
-    else
-    {
-        printf("\n El empleado no existe\n");
-    }
-}
-
-
-
-
-/**
- * Agregar un departamento
- * @param t_departamentos tabla hash departamentos
- * @param departamentos   elemento pair departamentos
- * @param depto           struct Departamento
- */
 void agregar_departamento(t_hash *t_departamentos, pair departamentos[caracteres], Departamento depto)
 {
     // Variables
-    char nombre;
+    char *nombre;
     int identificador;
     
     // Solicitmamos el nombre
     do
     {
-        printf("Nombre Departamento: ");
+        printf("\n Nombre Departamento: ");
         scanf("%s",&nombre);
         identificador=stringToInt(&nombre);
-    }while(buscar(t_departamentos, identificador) != 0);
+    }while(buscar(t_departamentos, h(identificador),1) != 0);
     
     
     // Guardamos el empleado en la tabla
     strcpy(depto.nombreDepartamento, &nombre);
     depto.identificadorDepartamento=identificador;
     
-
-    //departamentos[t_departamentos->total_departamentos].key=identificador;
-    //departamentos[t_departamentos->total_departamentos].depto=depto;
-    //insertar(t_departamentos, *departamentos, 1);
+    
+    // Esto no funciona
+    // departamentos[t_departamentos->total_departamentos].key=identificador;
+    // departamentos[t_departamentos->total_departamentos].depto=depto;
+    // insertar(t_departamentos, *departamentos, 1);
     
     // Guardamos al empleado en el archivo txt
     FILE *archivo;
@@ -678,5 +732,243 @@ void agregar_departamento(t_hash *t_departamentos, pair departamentos[caracteres
     fclose(archivo);
     
     // Mensaje
-    printf("Departamento Agregado");
+    printf("\n Departamento Agregado");
+}
+
+
+
+/**
+* Convertir un string a mayusculas (Funcion sacada de internet)
+* @param string String a convertir
+*/
+void MinToMay(char string[])
+{
+    int i=0;
+    int desp='a'-'A';
+    for (i=0;string[i]!='\0';++i)
+    {
+        if(string[i]>='a'&&string[i]<='z')
+        {
+            string[i]=string[i]-desp;
+        }
+    }
+}
+
+
+
+/**
+* Calcular el familiar segun las cargas del empleado
+* @param  sueldo_mes sueldo total mes
+* @param  cargas     cargas del empleado
+* @return            retorna la cantidad del familiar 
+*/
+int calcular_familiar(int sueldo_mes,int cargas)
+{
+    int familiar;
+
+    if(sueldo_mes<289608)
+    {
+        familiar=cargas*11337;
+    }
+    else if (sueldo_mes>289608 || sueldo_mes<423004)
+    {
+        familiar=cargas*6957;
+    }
+    else if(sueldo_mes>423004 || sueldo_mes<659743)
+    {
+        familiar=cargas*2199;
+    }
+    else
+    {
+        familiar=0;
+    }
+
+    return familiar;
+}
+
+
+
+
+/**
+* Obtener liquidacion de sueldo empleado
+* @param t_empleados Tabla hash empleados
+* @param key         key del empleado h(rut)
+* @param rut_limpio        rut sin digito verificador ni puntos
+*/
+void liquidacion(t_hash t_empleados, int key, int rut_limpio)
+{
+    int newKey=key;
+
+    if(buscar(&t_empleados, newKey+1,2) == 1)
+    {
+        do
+        {
+            newKey++;
+        }
+        while(t_empleados.t[newKey].value.rut.rut != rut_limpio);
+        char *contrato;
+        // dias
+        int dias_laborables,dias_mes;
+        // sueldos
+        int sueldo_hora,sueldo_mes,sueldo_liquido, sueldo_imponible;
+        // descuentos
+        int prevision,afp;
+        // beneificios
+        int gratificacion,pasajes=30000,familiar;
+    
+        // Información
+        contrato=t_empleados.t[newKey].value.contrato;
+        
+        MinToMay(contrato);
+        sueldo_hora=t_empleados.t[newKey].value.salario;
+    
+        // numeros de dias del mes
+        time_t tiempo = time(0);
+        struct tm *tlocal = localtime(&tiempo);
+        char dias[3];
+        strftime(dias,3,"%d",tlocal);
+        dias_mes=atoi(dias);
+    
+        // dias laborables (lunes-viernes)
+        switch (dias_mes)
+        {
+            case 31:
+                dias_laborables=23;
+                break;
+            case 30:
+                dias_laborables=21;
+                break;
+            case 28:
+                dias_laborables=20;
+        }
+    
+        if(strcmp(contrato, "FIJO") == 0 || strcmp(contrato, "INDEFINIDO") == 0)
+        {
+            // sueldo mes
+            sueldo_mes=(sueldo_hora*8)*dias_laborables;
+            // familiar
+            familiar=calcular_familiar(sueldo_mes,t_empleados.t[newKey].value.cargas);
+            // beneficios
+            gratificacion=sueldo_mes*0.25;
+            // final
+            sueldo_imponible=sueldo_mes+gratificacion+pasajes;
+            // descuentos
+            prevision=sueldo_imponible*0.07;
+            afp=sueldo_imponible*0.1;
+
+            sueldo_liquido=sueldo_imponible-prevision-afp+familiar;
+            
+            printf("\n HABERES: \n Liquidacion Empleado: \n Sueldo Base: %i \n Gratificacion Legal: %i \n Pasajes: 30.000 \n Familiar: %i \n\n DESCUENTOS: \n AFP: %i \n Prevision: %i \n\n SUELDO LIQUIDO: %i",sueldo_mes,gratificacion,familiar,afp,prevision,sueldo_liquido);
+        }
+        else if (strcmp(contrato, "DIA") == 0)
+        {
+            // sueldo mes
+            sueldo_mes=(sueldo_hora*8);
+            
+            printf("\n HABERES: \n Liquidacion Empleado: \n Sueldo Base: %i ",sueldo_mes);
+        }
+        else if(strcmp(contrato, "FAENA") == 0)
+        {
+            int dias_trabajo;
+            printf("\n Cantidad de dias:");
+            scanf("%d",&dias_trabajo);
+            
+            // sueldo mes
+            sueldo_mes=(sueldo_hora*8)*dias_trabajo;
+            // familiar
+            familiar=calcular_familiar(sueldo_mes,t_empleados.t[newKey].value.cargas);
+            // beneficios
+            gratificacion=sueldo_mes*0.25;
+            // final
+            sueldo_imponible=sueldo_mes+gratificacion+pasajes;
+            // descuentos
+            prevision=sueldo_imponible*0.07;
+            afp=sueldo_imponible*0.1;
+            
+            sueldo_liquido=sueldo_imponible-prevision-afp+familiar;
+            
+            printf("\n HABERES: \n Liquidacion Empleado: \n Sueldo Base: %i \n Gratificacion Legal: %i \n Pasajes: 30.000 \n Familiar: %i \n\n DESCUENTOS: \n AFP: %i \n Prevision: %i \n\n SUELDO LIQUIDO: %i",sueldo_mes,gratificacion,familiar,afp,prevision,sueldo_liquido);
+        }
+        else if(strcmp(contrato, "HONORARIOS") == 0)
+        {
+            int horas_trabajo;
+            printf("\n Cantidad de horas:");
+            scanf("%d",&horas_trabajo);
+
+            // sueldo mes
+            sueldo_mes=(sueldo_hora*8);
+            
+            printf("\n HABERES: \n Liquidacion Empleado: \n Sueldo: %i ",sueldo_mes);
+        }
+    }
+    else
+    {
+        printf("\n Empleado no existe\n");
+    }
+}
+
+
+
+/**
+* Respaldar los empleados en el archivo txt
+* @param t_empleados Tabla hash empleados
+* @param empleados   elemento pair empleados
+*/
+void respaldar_empleados(t_hash t_empleados, pair empleados[caracteres])
+{
+    int i;
+    // abrimos el archivo para sobre-escritura
+    FILE *archivo;
+    archivo = fopen("Headers/Archivos/empleados.txt", "w");
+    
+    for (i=0; i<t_empleados.total_empleados-1; i++)
+    {
+        if(buscar(&t_empleados,h(empleados[i].key)+1,2) == 1)
+        {
+            fprintf(archivo, "%i,%d,%s,%s,%s,%s,%i,%i,%d,%s,%i,%i\n",
+            t_empleados.t[h(empleados[i].key)+1].value.rut.rut,
+            t_empleados.t[h(empleados[i].key)+1].value.rut.verificador,
+            t_empleados.t[h(empleados[i].key)+1].value.primer_nombre,
+            t_empleados.t[h(empleados[i].key)+1].value.segundo_nombre,
+            t_empleados.t[h(empleados[i].key)+1].value.a_paterno,
+            t_empleados.t[h(empleados[i].key)+1].value.a_materno,
+            t_empleados.t[h(empleados[i].key)+1].value.dia,
+            t_empleados.t[h(empleados[i].key)+1].value.mes,
+            t_empleados.t[h(empleados[i].key)+1].value.year,
+            t_empleados.t[h(empleados[i].key)+1].value.contrato,
+            t_empleados.t[h(empleados[i].key)+1].value.salario,
+            t_empleados.t[h(empleados[i].key)+1].value.cargas);
+        }
+    }
+
+    // cerramos el archivo
+    fclose(archivo);
+}
+
+
+
+/**
+* Respaldar los empleados en el archivo txt
+* @param t_departamentos Tabla hash departamentos
+* @param departamentos   elemento pair departamentos
+*/
+void respaldar_departamentos(t_hash t_departamentos, pair departamentos[caracteres])
+{
+    int i;
+    // abrimos el archivo para sobre-escritura
+    FILE *archivo;
+    archivo = fopen("Headers/Archivos/departamentos.txt", "w");
+
+    for (i=0; i<t_departamentos.total_departamentos-1; i++)
+    {
+        if(buscar(&t_departamentos,h(departamentos[i].key)+1,1) == 1)
+        {
+            fprintf(archivo, "%i,%s",
+            t_departamentos.t[h(departamentos[i].key)+1].depto.identificadorDepartamento,
+            t_departamentos.t[h(departamentos[i].key)+1].depto.nombreDepartamento);
+        }
+    }
+
+    // cerramos el archivo
+    fclose(archivo);
 }

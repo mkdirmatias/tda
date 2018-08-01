@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 /*observacion. 
 0=la posicion esta libre
 1=significa que la posicion ya tiene un elemento.
@@ -9,7 +10,6 @@
 /*
 * Constantes y variables
 */
-#define max 100
 typedef int t_key;
 typedef int t_value;
 t_key key;
@@ -19,9 +19,13 @@ t_value value;
 /*
 * Estructura del elemento
 */
-typedef struct pair{
-    t_key key;//clave
-    t_value value;//valor
+typedef struct pair
+{
+    // clave
+    t_key key;
+    // valor
+    Empleado value;
+    Departamento depto;
 }pair ;
 
 
@@ -30,8 +34,10 @@ typedef struct pair{
 */
 typedef struct t_hash
 {
-    pair t[max];
-    int disponible[max];
+    pair t[EMPLEADOS];
+    int disponible[EMPLEADOS];
+    int total_empleados;
+    int total_departamentos;
 }t_hash;
 
 
@@ -42,19 +48,14 @@ typedef struct t_hash
 */
 t_key h(t_key key)
 {
-    return key%max;
-}
-
-
-/**
-* Inserta elemento en tabla hash
-* @param tabla    Tabla Hash
-* @param elemento Elemento a insertar, de tipo pair (clave-valor)
-*/
-void insertar( t_hash * tabla , pair elemento )
-{
-    tabla->t[h(elemento.key)]=elemento;
-    tabla->disponible[h(elemento.key)]=1;
+    int modulo = key%EMPLEADOS;
+    
+    if(modulo==0)
+    {
+        modulo++;
+    }
+    
+    return modulo;
 }
 
 
@@ -62,15 +63,72 @@ void insertar( t_hash * tabla , pair elemento )
 * Busca un elemento en la tabla
 * @param  tabla Tabla Hash
 * @param  clave Clave a buscar
+* @param  tipo 1 para departamento y 2 para empleados
 * @return       Retorna el elemento
 */
-t_value buscar(t_hash* tabla,t_key clave)
+int buscar(t_hash *tabla, t_key clave, int tipo)
 {
-    if((tabla->disponible[h(clave)]=1))
+    if(tabla->disponible[clave]==1)
     {
-        return tabla->disponible[h(clave)]=2;
+        if(tipo==2)
+        {
+            if(h(tabla->t[clave].value.rut.rut)+1==clave)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        else
+        {
+            if (h(tabla->t[clave].depto.identificadorDepartamento)+1==clave)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+    }
+    else
+    {
+        return 0;
     }
     return 0;
+}
+
+
+/**
+* Inserta elemento en tabla hash
+* @param tabla    Tabla Hash
+* @param tipo    1 para departamentos y 2 para empleados
+* @param elemento Elemento a insertar, de tipo pair (clave-valor)
+*/
+void insertar(t_hash *tabla , pair elemento, int tipo)
+{
+    int newKey=h(elemento.key);
+    
+    do
+    {
+        newKey++;
+    }while(buscar(tabla,newKey,tipo)==1);
+
+    tabla->t[newKey]=elemento;
+    tabla->disponible[newKey]=1;
+
+    // aumentamos la cantidad de registros, para departamentos
+    if(tipo==1)
+    {
+        tabla->total_departamentos++;
+    }
+    else
+    {
+        // y para empleados
+        tabla->total_empleados++;
+    }
 }
 
 
